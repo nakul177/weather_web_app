@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
  import GetUserLocation from "../Location";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { BsSearch } from "react-icons/bs";
-import "./weather.css";
-import Bulk from "../../db.json"
+import "./Weather.css";
+import Bulk from "../../db.json";
 
 import {
   ResponsiveContainer,
@@ -11,19 +11,18 @@ import {
   Area,
   XAxis,
   Tooltip,
-  linearGradient,
   CartesianGrid,
 } from "recharts";
 
 const Weather = () => {
   const [data, setData] = useState([]);
   const [cordData, setCordData] = useState([]);
-  const [query, setQuery] = useState("Aurangabad");
+  const [query, setQuery] = useState("Pune");
   const [active, setActive] = useState(0);
   const [inputStyle, setInputStyle] = useState(false);
   const [display, setDisplay] = useState([]);
   const [displayMode, setDisplayMode] = useState(true);
-  const local = GetUserLocation();
+  const useLocal = GetUserLocation();
 
   let weatherAPI = {
     key: "daf81f9bedba9c24a0f37473fadff8aa",
@@ -234,7 +233,7 @@ const Weather = () => {
           <input
             onClick={inPutBox}
             type="text"
-            placeholder="...Search"
+            placeholder="Search for city..."
             onChange={handleChange}
             value={query}
           />
@@ -265,7 +264,7 @@ const Weather = () => {
           ))}
       </div>
 
-      {local.loaded && data.sys?.country === "IN" && cordData.daily && (
+      {useLocal.loaded && data.sys?.country === "IN" && cordData.daily && (
         <>
           {/* Daily Forcast Box*/}
           <section className="top">
