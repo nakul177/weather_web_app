@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
- import GetUserLocation from "./Location";
+ import GetUserLocation from "../Location";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { BsSearch } from "react-icons/bs";
-import "./Weather.css";
-import Bulk from "../db.json";
+import "./weather.css";
+import Bulk from "../../db.json"
 
 import {
   ResponsiveContainer,
@@ -222,50 +222,183 @@ const Weather = () => {
 
   return (
     <main>
-    {/* Top input-box form */}
-    <form onSubmit={(e) => e.preventDefault()}>
-      <div
-        className="input-box"
-        style={{
-          border: inputStyle ? "2px solid #131313" : "none",
-        }}
-      >
-        <FaMapMarkerAlt className="map-icon" />
-        <input
-          onClick={inPutBox}
-          type="text"
-          placeholder="...Search"
-          onChange={handleChange}
-          value={query}
-        />
-        <BsSearch
-          className="search-icon"
-          onClick={() => setDisplayMode((current) => !current)}
-        />
-      </div>
-    </form>
+      {/* Top input-box form */}
+      <form onSubmit={(e) => e.preventDefault()}>
+        <div
+          className="input-box"
+          style={{
+            border: inputStyle ? "2px solid #131313" : "none",
+          }}
+        >
+          <FaMapMarkerAlt className="map-icon" />
+          <input
+            onClick={inPutBox}
+            type="text"
+            placeholder="...Search"
+            onChange={handleChange}
+            value={query}
+          />
+          <BsSearch
+            className="search-icon"
+            onClick={() => setDisplayMode((current) => !current)}
+          />
+        </div>
+      </form>
 
-    {/* For auto suggestions */}
-    <div className="bulk-data-container">
-      {displayMode &&
-        display.map((e, i) => (
-          <div
-            key={i}
-            className="bulk-data"
-            onClick={() => setSearch(e.city)}
-          >
-            <div className="bulk-data-info">
-              <strong>{e.city},</strong>
-              <p>{e.state}</p>
+      {/* For auto suggestions */}
+      <div className="bulk-data-container">
+        {displayMode &&
+          display.map((e, i) => (
+            <div
+              key={i}
+              className="bulk-data"
+              onClick={() => setSearch(e.city)}
+            >
+              <div className="bulk-data-info">
+                <strong>{e.city},</strong>
+                <p>{e.state}</p>
+              </div>
+              <div className="bulk-data-icon">
+                <FaMapMarkerAlt />
+              </div>
             </div>
-            <div className="bulk-data-icon">
-              <FaMapMarkerAlt />
+          ))}
+      </div>
+
+      {local.loaded && data.sys?.country === "IN" && cordData.daily && (
+        <>
+          {/* Daily Forcast Box*/}
+          <section className="top">
+            {cordData.daily.map((e, i) => (
+              <div
+                key={e.dt}
+                className={
+                  active === i
+                    ? "clicked-single-daily-card"
+                    : "single-daily-card"
+                }
+                onClick={() => dailyCardClick(i)}
+              >
+                <p>{displayDate(e.dt)}</p>
+                <div className="daily-temp">
+                  <p>{Math.round(e.temp.max)}°</p>
+                  <p>{Math.round(e.temp.min)}°</p>
+                </div>
+                <div className="daily-img">
+                  <img
+                    src={`https://openweathermap.org/img/wn/${e?.weather[0]?.icon}@2x.png`}
+                    alt=""
+                  />
+                </div>
+                <p>{e.weather[0]?.main}</p>
+              </div>
+            ))}
+          </section>
+
+          {/* Mid-n-Bottom Box */}
+          <section className="bottom">
+            <div className="current-temp-img">
+              <strong>{Math.round(data.main?.temp)}°C</strong>
+              <div className="current-img">
+                <img
+                  src={`https://openweathermap.org/img/wn/${cordData.current?.weather[0]?.icon}@2x.png`}
+                  alt=""
+                />
+              </div>
             </div>
-          </div>
-        ))}
-    </div>
+
+            {/* Chart */}
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={cordData?.hourly.slice(0, 12)}>
+                <Area
+                  activeDot={{ strokeWidth: 2, r: 7 }}
+                  type="monotone"
+                  dataKey="temp"
+                  stroke="#008ffb"
+                  strokeWidth="5"
+                  fill="#bbe1fe"
+                />
+
+                <XAxis
+                  interval="preserveStartEnd"
+                  axisLine={false}
+                  tickLine={false}
+                  dataKey="dt"
+                  tickFormatter={(dt) => {
+                    if (convertString(dt) === 12 || convertString(dt) === 0) {
+                      return 12;
+                    }
+                    return convertString(dt) % 12;
+                  }}
+                />
+
+                <Tooltip content={<CustomTooltip />} />
+                <CartesianGrid opacity={0.8} vertical={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+
+            {/* Humidity and Pressure */}
+            <div className="hum-Pre">
+              <div className="pressure">
+                <strong>Pressure</strong>
+                <p>{cordData.current.pressure} hPa</p>
+              </div>
+              <div className="humidity">
+                <strong>Humidity</strong>
+                <p>{cordData.current.humidity} %</p>
+              </div>
+            </div>
+
+            {/* Sunset and Sunrise */}
+
+            <div className="sun-SetRise">
+              <div className="sunrise">
+                <strong>Sunrise</strong>
+                <p>
+                  {`${convertString(data.sys?.sunrise)}:${new Date(
+                    data.sys?.sunrise
+                  ).getMinutes()} am`}
+                </p>
+              </div>
+              <div className="sunset">
+                <strong>Sunset</strong>
+                <p>
+                  {`${convertString(data.sys?.sunset) - 12}:${new Date(
+                    data.sys?.sunrise
+                  ).getMinutes()} pm`}
+                </p>
+              </div>
+            </div>
+
+            {/* Sunset-Sunrise Chart */}
+            <ResponsiveContainer width="100%" height={160}>
+              <AreaChart data={sunData}>
+                <defs>
+                  <linearGradient id="sun-color" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="20%" stopColor="#f5e3be" stopOpacity={0.7} />
+                    <stop offset="95%" stopColor="#f5e3be" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="sun"
+                  padding={{ left: 30, right: 30 }}
+                  tickLine={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#eccb87"
+                  fillOpacity={1}
+                  fill="url(#sun-color)"
+                />
+                <Tooltip content={<SunTooltip />} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </section>
+        </>
+      )}
     </main>
-    );
+  );
 };
 
 export default Weather;

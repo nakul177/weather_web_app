@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import Weather from './components/weather_info/weather';
+import Weather from './components/weather_info/Weather';
 
 function App() {
   return (
